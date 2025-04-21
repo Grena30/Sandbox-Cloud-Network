@@ -1,0 +1,79 @@
+services:
+  compute-intensive-1:
+    build: ./backend/compute-intensive
+    depends_on:
+      user-database:
+        condition: service_healthy
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
+      - POSTGRES_DB=${POSTGRES_DB:-user_db}
+    ports:
+      - "5001:8000"
+    networks:
+      - cloud-compute-network
+
+  compute-intensive-2:
+    build: ./backend/compute-intensive
+    depends_on:
+      user-database:
+        condition: service_healthy
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
+      - POSTGRES_DB=${POSTGRES_DB:-user_db}
+    ports:
+      - "5002:8000"
+    networks:
+      - cloud-compute-network
+
+  request-handler-1:
+    build: ./backend/request-handler
+    depends_on:
+      user-database:
+        condition: service_healthy
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
+      - POSTGRES_DB=${POSTGRES_DB:-user_db}
+    ports:
+      - "5003:8000"
+    networks:
+      - cloud-compute-network
+  
+  request-handler-2:
+    build: ./backend/request-handler
+    depends_on:
+      user-database:
+        condition: service_healthy
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
+      - POSTGRES_DB=${POSTGRES_DB:-user_db}
+    ports:
+      - "5004:8000"
+    networks:
+      - cloud-compute-network
+
+  user-database:
+    build: ./database
+    container_name: database
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-user_db}
+      - POSTGRES_USER=${POSTGRES_USER:-user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pass}
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    networks:
+      - cloud-compute-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-user_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+networks:
+  cloud-compute-network:
+    driver: bridge
+
+volumes:
+  user_db_data:
