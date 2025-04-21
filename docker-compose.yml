@@ -25,20 +25,16 @@ services:
     networks:
       - cloud-compute-network
 
-  request-handler-1:
-    build: ./backend/request-handler
-    depends_on:
-      user-database:
-        condition: service_healthy
-    environment:
-      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
-      - POSTGRES_DB=${POSTGRES_DB:-user_db}
+  nginx:
+    build: ./load-balancer/
     ports:
-      - "5003:8000"
+      - "80:80"
     networks:
       - cloud-compute-network
-  
-  request-handler-2:
+    depends_on:
+      - request-handler
+
+  request-handler:
     build: ./backend/request-handler
     depends_on:
       user-database:
@@ -46,8 +42,8 @@ services:
     environment:
       - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
       - POSTGRES_DB=${POSTGRES_DB:-user_db}
-    ports:
-      - "5004:8000"
+    deploy:
+      replicas: 2
     networks:
       - cloud-compute-network
 

@@ -11,9 +11,5 @@ app.include_router(user.router)
 def on_startup():
     create_db_and_tables()
 
-@app.get("/")
-def read_root():
-    return {"message": "Hello, World!"}
-
 if __name__ == '__main__':
     uvicorn.run(app)
