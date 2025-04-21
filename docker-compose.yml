@@ -1,27 +1,53 @@
 services:
-  compute-intensive-1:
-    build: ./backend/compute-intensive
+
+  rabbitmq:
+        image: rabbitmq:3-management-alpine
+        container_name: rabbitmq
+        restart: always
+        ports:
+            - '5672:5672'
+            - '8081:15692'
+            - '15672:15672'
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-user}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-pass}
+        networks:
+            - cloud-compute-network
+        healthcheck:
+          test: ["CMD", "rabbitmq-diagnostics", "ping"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+
+  web-api:
+    build: ./backend/web-api
+    ports:
+      - "5000:8000"
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       user-database:
         condition: service_healthy
     environment:
-      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
-      - POSTGRES_DB=${POSTGRES_DB:-user_db}
-    ports:
-      - "5001:8000"
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://user:pass@rabbitmq:5672}
     networks:
       - cloud-compute-network
 
-  compute-intensive-2:
+  compute-intensive:
     build: ./backend/compute-intensive
     depends_on:
       user-database:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:pass@user-database:5432/user_db}
       - POSTGRES_DB=${POSTGRES_DB:-user_db}
-    ports:
-      - "5002:8000"
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://user:pass@rabbitmq:5672}
+    deploy:
+      replicas: 2
     networks:
       - cloud-compute-network
 
@@ -73,3 +99,4 @@ networks:
 
 volumes:
   user_db_data:
+  rabbitmq_data:

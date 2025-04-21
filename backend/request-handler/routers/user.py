@@ -13,9 +13,7 @@ def list_users(session: SessionDep) -> list[User]:
     users = session.exec(select(User)).all()
     return users
 
-@router.post("/users/")
-def create_user(user: User, session: SessionDep) -> User:
-    session.add(user)
-    session.commit()
-    session.refresh(user)
+@router.get('/user/{user_id}')
+def get_user(user_id: int, session: SessionDep) -> User | None:
+    user = session.exec(select(User).where(User.id == user_id)).first()
     return user

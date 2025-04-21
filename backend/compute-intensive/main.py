@@ -1,15 +1,13 @@
-from fastapi import FastAPI
+from celery import Celery
 from models.database import create_db_and_tables
 from routers import user
-import uvicorn
+from dotenv import load_dotenv
+import os
 
 
-app = FastAPI()
-app.include_router(user.router)
+load_dotenv()
+rabbitmq_url = os.getenv("RABBITMQ_URL")
 
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
-
-if __name__ == '__main__':
-    uvicorn.run(app)
+app = Celery("compute-intensive", broker=rabbitmq_url)
+create_db_and_tables()
+app.autodiscover_tasks(['routers.user'])

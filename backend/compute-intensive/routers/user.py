@@ -1,41 +1,15 @@
-from fastapi import APIRouter, Depends, Query
+from celery import shared_task
+from models.database import create_db_and_tables
 from sqlmodel import Session, select
 from models.user import User
-from typing import Annotated
-from models.database import get_session
+from models.database import engine
 
 
-SessionDep = Annotated[Session, Depends(get_session)]
-router = APIRouter()
-
-@router.get('/user')
-def list_users(session: SessionDep) -> list[User]:
-    users = session.exec(select(User)).all()
-    return users
-
-# @router.get("/user/{user_id}")
-# def list_user(session: SessionDep, user_id: int) -> User:
-#     user = session.get(User, user_id)
-#     return user
-
-@router.post("/users/")
-def create_user(user: User, session: SessionDep) -> User:
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return user
-
-# @router.put("/users/{user_id}")
-# def update_user(user: User, session: SessionDep, user_id: int) -> User:
-#     user = session.get(User, user_id)
-#     session.update(user)
-#     session.commit()
-#     session.refresh(user)
-#     return user
-
-# @router.delete("/users/{user_id}")
-# def delete_user(session: SessionDep, user_id: int) -> User:
-#     user = session.get(User, user_id)
-#     session.delete(user)
-#     session.commit()
-#     return
+@shared_task
+def create_user_task(username: str, email: str, job_title: str, password: str):
+    with Session(engine) as session:
+        user = User(username=username, email=email, job_title=job_title, password=password)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+    return f"User {username} created successfully!"
