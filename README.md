@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [Project Documentation](./docs/documentation.md)
+- [Project Documentation](./docs/Documentation.md)
 - [Getting started](#getting-started)
 - [Docker setup](#docker-setup)
 - [API Documentation](#api-documentation)
