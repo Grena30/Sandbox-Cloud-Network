@@ -8,6 +8,10 @@ from models.database import get_session
 SessionDep = Annotated[Session, Depends(get_session)]
 router = APIRouter()
 
+@router.get("/status")
+def read_root():
+    return {"message": "Service is running!"}
+
 @router.get('/user')
 def list_users(session: SessionDep) -> list[User]:
     users = session.exec(select(User)).all()

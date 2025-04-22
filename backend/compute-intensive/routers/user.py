@@ -6,6 +6,10 @@ from models.database import engine
 
 
 @shared_task
+def read_root():
+    return {"message": "Service is running!"}
+
+@shared_task
 def create_user_task(username: str, email: str, job_title: str, password: str):
     with Session(engine) as session:
         user = User(username=username, email=email, job_title=job_title, password=password)
