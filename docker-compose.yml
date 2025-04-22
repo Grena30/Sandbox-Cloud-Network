@@ -1,25 +1,25 @@
 services:
 
   rabbitmq:
-        image: rabbitmq:3-management-alpine
-        container_name: rabbitmq
-        restart: always
-        ports:
-            - '5672:5672'
-            - '8081:15692'
-            - '15672:15672'
-        environment:
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-pass}
-        networks:
-            - cloud-compute-network
-        healthcheck:
-          test: ["CMD", "rabbitmq-diagnostics", "ping"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
-        volumes:
-            - rabbitmq_data:/var/lib/rabbitmq
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '8081:15692'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-pass}
+    networks:
+      - cloud-compute-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
   web-api:
     build: ./backend/web-api
